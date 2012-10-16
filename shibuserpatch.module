@@ -1,0 +1,77 @@
+<?php
+/**
+ * @file
+ * A custom module that updates shibboleth tables when a user is pre-created.
+ * 
+ */
+ 
+/**
+ * Implements hook_user_insert
+ * 
+ */
+ function shibuserpatch_user_insert(&$edit, $account, $category) {
+
+  $uid = $account->uid;
+  $name = $account->name;
+  
+  /*
+    INSERT INTO shib_authmap (uid, targeted_id)
+      SELECT uid, name
+      FROM users
+      WHERE uid > 1 AND (uid) NOT IN
+        (SELECT uid
+        FROM shib_authmap);
+  */
+    
+  $exists= db_select('shib_authmap','sa')
+    ->fields('sa')
+    ->condition('uid',$uid ,'=')
+    ->execute()
+    ->fetchAll();
+    
+  if(!$exists) { 
+    $shibauth = db_insert('shib_authmap')
+      ->fields(array(
+        'uid' => $uid,
+        'targeted_id' => $name,
+      ))
+      ->execute();
+  }
+
+  /*
+INSERT INTO authmap (uid, authname)
+  SELECT uid, targeted_id
+  FROM shib_authmap
+  WHERE (uid) NOT IN
+    (SELECT uid
+    FROM authmap);
+ */
+ 
+ $exists= db_select('authmap','am')
+    ->fields('am')
+    ->condition('uid',$uid ,'=')
+    ->execute()
+    ->fetchAll();
+    
+  if(!$exists) { 
+    $authmap = db_insert('authmap')
+      ->fields(array(
+        'uid' => $uid,
+        'authname' => $name,
+      ))
+      ->execute();
+          
+     /*
+    UPDATE authmap SET module = 'shib_auth'
+    WHERE (uid) IN
+      (SELECT uid
+      FROM shib_authmap);
+       */
+      $authupdate = db_update('authmap')
+        ->fields(array(
+          'module' => 'shib_auth',
+        ))
+        ->condition('uid', $uid, '=')
+        ->execute();
+    }
+ }
