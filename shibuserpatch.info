@@ -1,6 +1,0 @@
-name = Shibboleth User Patch
-description = A Drupal 7 module to update the shibboleth authentication tables with users registered before enabling shibboleth and to update tables when admin creates a user
-package = SHANTI Shibboleth Patch
-core = 7.x
-dependencies[] = shib_auth
-files[] = shibuserpatch.module
