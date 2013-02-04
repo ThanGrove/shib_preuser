@@ -28,45 +28,68 @@ INSERT INTO shib_authmap (uid, targeted_id)
     (SELECT uid
     FROM shib_authmap);
    */
-  $result = db_query('SELECT uid, name FROM {users} WHERE uid > 1 and (uid) NOT IN (SELECT uid FROM {shib_authmap})');
-  foreach($result as $record) {
-    $sainsert = db_insert('shib_authmap')
-      ->fields(array(
-        'uid' => $record->uid,
-        'targeted_id' => $record->name,
-      ))
-      ->execute();
+  $message = "";
+  if(db_table_exists('shib_authmap')) {
+    $result = db_query('SELECT uid, name FROM {users} WHERE uid > 1 and (uid) NOT IN (SELECT uid FROM {shib_authmap})');
+    $message = t("The following users have been added to the shib_authmap table: ");
+    $numItems = $result->rowCount();
+    $i = 0;
+    foreach($result as $record) {
+      $sainsert = db_insert('shib_authmap')
+        ->fields(array(
+          'uid' => $record->uid,
+          'targeted_id' => $record->name,
+        ))
+        ->execute();
+      $message .= $record->uid;
+      if(++$i < $numItems) { $message .= ', ';} else { $message .= '.';}
+    }
+    drupal_set_message(check_plain($message), 'status');
+  } else {
+    $message = "";
+    drupal_set_message(check_plain(t('shib_authmap table does not exist! Check is Shibboleth module is installed.')), 'error');
   }
    /*
  
-INSERT INTO authmap (uid, authname)
-  SELECT uid, targeted_id
-  FROM shib_authmap
-  WHERE (uid) NOT IN
-    (SELECT uid
-    FROM authmap);
+    INSERT INTO authmap (uid, authname)
+      SELECT uid, targeted_id
+      FROM shib_authmap
+      WHERE (uid) NOT IN
+        (SELECT uid
+        FROM authmap);
  */
-  $result = db_query('SELECT uid, targeted_id FROM {shib_authmap} WHERE (uid) NOT IN (SELECT uid FROM {authmap})');
-  foreach($result as $record) {
-    $sainsert = db_insert('authmap')
+  if(db_table_exists('authmap')) {
+    $result = db_query('SELECT uid, targeted_id FROM {shib_authmap} WHERE (uid) NOT IN (SELECT uid FROM {authmap})');
+    $message .= t('The following users have been added to the authmap table: ');
+    $numItems = $result->rowCount();
+    $i = 0;
+    foreach($result as $record) {
+      $sainsert = db_insert('authmap')
+        ->fields(array(
+          'uid' => $record->uid,
+          'authname' => $record->targeted_id,
+        ))
+        ->execute();
+      $message .= $record->uid;
+      if(++$i < $numItems) { $message .= ', ';} else { $message .= '.';}
+    }
+    drupal_set_message(check_plain($message), 'status');
+     /*
+    UPDATE authmap SET module = 'shib_auth'
+    WHERE (uid) IN
+      (SELECT uid
+      FROM shib_authmap);
+       */
+    $uids = db_query('SELECT uid FROM {shib_authmap}')->fetchCol('uid');
+    $update = db_update('authmap')
       ->fields(array(
-        'uid' => $record->uid,
-        'authname' => $record->targeted_id,
+        'module' => 'shib_auth',
       ))
+      ->condition('uid', $uids, 'IN')
       ->execute();
+    $message .=  $update . ' rows in the authmap table were updated to add shib_auth for their module.';
+    drupal_set_message(check_plain($message), 'status');
+  } else {
+    drupal_set_message(check_plain(t('authmap table does not exist! Check is Shibboleth module is installed.')), 'error');
   }
-  
- /*
-UPDATE authmap SET module = 'shib_auth'
-WHERE (uid) IN
-  (SELECT uid
-  FROM shib_authmap);
-   */
-  $uids = db_query('SELECT uid FROM {shib_authmap}')->fetchCol('uid');
-  $update = db_update('authmap')
-    ->fields(array(
-      'module' => 'shib_auth',
-    ))
-    ->condition('uid', $uids, 'IN')
-    ->execute();
 }

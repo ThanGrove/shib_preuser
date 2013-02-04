@@ -22,20 +22,20 @@
         (SELECT uid
         FROM shib_authmap);
   */
-    
-  $exists= db_select('shib_authmap','sa')
-    ->fields('sa')
-    ->condition('uid',$uid ,'=')
-    ->execute()
-    ->fetchAll();
-    
-  if(!$exists) { 
+  $message = '';
+  $mtype = 'status';
+  if(db_table_exists('shib_authmap')) { 
     $shibauth = db_insert('shib_authmap')
       ->fields(array(
         'uid' => $uid,
         'targeted_id' => $name,
       ))
       ->execute();
+    $message = $uid . ' added to Shibboleth shib_authmap table';
+    drupal_set_message(check_plain($message), 'status');
+  } else {
+    $message = 'The table shib_authmap does not exist! Check if Shibboleth module is installed.';
+    drupal_set_message(check_plain($message), 'error');
   }
 
   /*
@@ -46,14 +46,8 @@ INSERT INTO authmap (uid, authname)
     (SELECT uid
     FROM authmap);
  */
- 
- $exists= db_select('authmap','am')
-    ->fields('am')
-    ->condition('uid',$uid ,'=')
-    ->execute()
-    ->fetchAll();
     
-  if(!$exists) { 
+  if(db_table_exists('authmap')) {
     $authmap = db_insert('authmap')
       ->fields(array(
         'uid' => $uid,
@@ -73,5 +67,10 @@ INSERT INTO authmap (uid, authname)
         ))
         ->condition('uid', $uid, '=')
         ->execute();
+      $message .=  $uid . ' added to Shibboleth shib_authmap table';
+      drupal_set_message(check_plain($message), 'status');
+    } else {
+      $message .= '<br/> The authmap table does not exist. Check if Shibbolleth module is properly installed';
+      drupal_set_message(check_plain($message), 'error');
     }
  }
