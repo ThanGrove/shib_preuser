@@ -9,87 +9,20 @@
  */
  
  /**
- * Implements hook_install(). 
-  *  Update the Shibboleth authentication tables as per the instructions at:
-  *        https://wiki.aai.niif.hu/index.php/DrupalShibbolethReadmeDev#Pre-creating_users
-  *  
-  *  The recommended SQL commands from that page are commented above the drupal code below.
-  *  This is a one time action that occurs upon installing the shibuserpath module
-  *  After this, the shibuserpatch_user_insert function in shibuserpatch.module assures that the user 
-  *  has correct authentication if inserted by an admin rather than signing up oneself.
- */
-function shib_preuser_install() {
-  
-  /*
-INSERT INTO shib_authmap (uid, targeted_id)
-  SELECT uid, name
-  FROM users
-  WHERE uid > 1 AND (uid) NOT IN
-    (SELECT uid
-    FROM shib_authmap);
-   */
-  $message = "";
-  if(db_table_exists('shib_authmap')) {
-    $result = db_query('SELECT uid, name FROM {users} WHERE uid > 1 and (uid) NOT IN (SELECT uid FROM {shib_authmap})');
-    $message = t("The following users have been added to the shib_authmap table: ");
-    $numItems = $result->rowCount();
-    $i = 0;
-    foreach($result as $record) {
-      $sainsert = db_insert('shib_authmap')
-        ->fields(array(
-          'uid' => $record->uid,
-          'targeted_id' => $record->name,
-        ))
-        ->execute();
-      $message .= $record->uid;
-      if(++$i < $numItems) { $message .= ', ';} else { $message .= '.';}
-    }
-    drupal_set_message(check_plain($message), 'status');
-  } else {
-    $message = "";
-    drupal_set_message(check_plain(t('shib_authmap table does not exist! Check is Shibboleth module is installed.')), 'error');
-  }
-   /*
- 
-    INSERT INTO authmap (uid, authname)
-      SELECT uid, targeted_id
-      FROM shib_authmap
-      WHERE (uid) NOT IN
-        (SELECT uid
-        FROM authmap);
- */
-  if(db_table_exists('authmap')) {
-    $result = db_query('SELECT uid, targeted_id FROM {shib_authmap} WHERE (uid) NOT IN (SELECT uid FROM {authmap})');
-    $message .= t('The following users have been added to the authmap table: ');
-    $numItems = $result->rowCount();
-    $i = 0;
-    foreach($result as $record) {
-      $sainsert = db_insert('authmap')
-        ->fields(array(
-          'uid' => $record->uid,
-          'authname' => $record->targeted_id,
-        ))
-        ->execute();
-      $message .= $record->uid;
-      if(++$i < $numItems) { $message .= ', ';} else { $message .= '.';}
-    }
-    drupal_set_message(check_plain($message), 'status');
-     /*
-    UPDATE authmap SET module = 'shib_auth'
-    WHERE (uid) IN
-      (SELECT uid
-      FROM shib_authmap);
-       */
-    $uids = db_query('SELECT uid FROM {shib_authmap}')->fetchCol('uid');
-    $update = db_update('authmap')
-      ->fields(array(
-        'module' => 'shib_auth',
-      ))
-      ->condition('uid', $uids, 'IN')
-      ->execute();
-    $message .=  $update . ' rows in the authmap table were updated to add shib_auth for their module.';
-    drupal_set_message(check_plain($message), 'status');
-  } else {
-    drupal_set_message(check_plain(t('authmap table does not exist! Check is Shibboleth module is installed.')), 'error');
-  }
+ * Implements hook_enable(). 
+  *
+  *  redirects to the configuration page.
+  */
+function shib_preuser_enable() {
+
+  drupal_set_message(check_plain(t('The Shibboleth pre-user registrations module has been enabled. ' .
+    'No changes have yet been made to the authentication tables. Go to the ')) . l('config page', 'admin/config/people/shib_auth/preregistration'));
 }
+
+function shib_preuser_disable() {
+  variable_set(SHIB_PREREG, FALSE);
+   drupal_set_message(check_plain(t('The Shibboleth pre-user registrations module has been disabled. ' .
+    'No changes made to the authentication tables.')));
+  
+}
+

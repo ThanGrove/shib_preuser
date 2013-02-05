@@ -1,4 +1,4 @@
-name = Shibboleth Pre-Registered User
+name = Shibboleth Pre-Existing User Registration
 description = A Drupal 7 module to update the shibboleth authentication tables with users registered before enabling shibboleth and to update tables when admin creates a user
 package = SHANTI Shibboleth Pre-Registered User
 core = 7.x
