@@ -51,12 +51,6 @@ function shib_preuser_config() {
           'authentication tables, click the checkbox and save the configuration.') . '</p>',
     );
     
-    $form['shib_preuser_settings_statusview'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Allow Users to see Shibboleth status'),
-      '#description' => t('Allows users to see whether or not they have been added to the Shibboleth authentication tables when they edit their user profile'),
-      '#default_value' => variable_get('shib_preuser_settings_statusview', SHIB_PRESUSER_STATUSVIEW),
-    );
     
     $form['shib_preuser_registration'] = array(
       '#type' => 'checkbox',
@@ -69,6 +63,12 @@ function shib_preuser_config() {
     
   }
   
+  $form['shib_preuser_settings_statusview'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow Users to see Shibboleth status'),
+    '#description' => t('Allows users to see whether or not they have been added to the Shibboleth authentication tables when they edit their user profile'),
+    '#default_value' => variable_get('shib_preuser_settings_statusview', SHIB_PRESUSER_STATUSVIEW),
+  );
   return system_settings_form($form);
 }
 
@@ -242,8 +242,8 @@ function shib_preuser_form_alter(&$form, &$form_state, $form_id) {
       );
       $form['shibauth']['message'] = array(
         '#type' => 'markup',
-        '#markup' => '<p>You <strong>are' . (($isreg == 2)? '' : ' not') . '</strong> registered in the Shibboleth authentication tables. <br/>' .
-          (($isreg == 2)?'If this is in error, please contact your site administrator.':'You should be able to logon via Netbadge.'),
+        '#markup' => '<p>You <strong>are' . (($isreg == 1)? ' not' : '') . '</strong> registered in the Shibboleth authentication tables. <br/>' .
+          (($isreg == 1)?'If this is in error, please contact your site administrator.':'You should be able to logon via Netbadge.'),
 
       );
     }
