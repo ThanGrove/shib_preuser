@@ -140,7 +140,7 @@ INSERT INTO shib_authmap (uid, targeted_id)
       $i++;
     }
     
-    $message = $i . t(" users have been added to the authmap table.<br/>");
+    $message = $i . t(" users have been added to the authmap table.");
     drupal_set_message(check_plain($message), 'status');
     
      /*
@@ -149,6 +149,7 @@ INSERT INTO shib_authmap (uid, targeted_id)
       (SELECT uid
       FROM shib_authmap);
        */
+    $message = '';
     $uids = db_query('SELECT uid FROM {shib_authmap}')->fetchCol('uid');
     $update = db_update('authmap')
       ->fields(array(
