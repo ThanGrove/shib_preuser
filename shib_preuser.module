@@ -29,7 +29,62 @@ function shib_preuser_menu() {
   return $items;
 }
 
-  
+/**
+ * shib_preuser_user_insert(): Implements hook_user_insert
+ *      THIS HAS ALL THE FUNCTIONS IN IT BUT THEY NEED TO BE CLEANED UP AND ADJUSTED FOR THIS FUNCTION
+ */
+function shib_preuser_user_insert(&$edit, $account, $category) {
+  if(db_table_exists('shib_authmap')) {
+    // NEED TO CHECK IF ALREADY THERE!
+    /* Sample db code to use
+     * $q = db_select('shib_authmap', 'sa')
+  ->condition('sa.uid', 0, '<>')
+  ->fields('sa', array('uid', 'targeted_id'))
+  ->range(0, 50)->execute();
+
+$r = $q->fetchAllAssoc('uid');
+
+dpm(count($r));
+
+$q = db_select('users', 'u')
+  ->condition('u.uid', 0, '<>')
+  ->fields('u', array('uid', 'name'))
+  ->range(0, 50)->execute();
+
+$r = $q->fetchAllAssoc('uid');
+dpm($r);
+     */
+    $sainsert = db_insert('shib_authmap')
+      ->fields(array(
+        'uid' => $account->uid,
+        'targeted_id' => $account->name,
+      ))
+      ->execute();
+    // Need TO CLEAN THIS UP
+    $result = db_query('SELECT uid, targeted_id FROM {shib_authmap} WHERE (uid) NOT IN (SELECT uid FROM {authmap})');
+    $message = '';
+    $numItems = $result->rowCount();
+    $i = 0;
+    foreach($result as $record) {
+      $sainsert = db_insert('authmap')
+        ->fields(array(
+          'uid' => $record->uid,
+          'authname' => $record->targeted_id,
+        ))
+        ->execute();
+      $i++;
+    }
+    // CLEAN UP
+    $uids = db_query('SELECT uid FROM {shib_authmap}')->fetchCol('uid');
+    $update = db_update('authmap')
+      ->fields(array(
+        'module' => 'shib_auth',
+      ))
+      ->condition('uid', $uids, 'IN')
+      ->execute();
+  }
+}
+
 function shib_preuser_config() {
   
   $form = array();
