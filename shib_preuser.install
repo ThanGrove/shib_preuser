@@ -10,11 +10,12 @@
  
  /**
  * Implements hook_install(). 
-  *
-  *  sets the weight of the module to 1000 so it is executed after the others.
-  */
+ *
+ *  sets the weight of the module to 1000 so it is executed after the others.
+ * 
+ **/
  
-function shib_preuser_install(){
+function shib_preuser_install() {
   $spiweight = 1000;
   db_update('system')
     ->fields(array('weight' => $spiweight))
@@ -22,11 +23,17 @@ function shib_preuser_install(){
     ->execute();
 }
 
+function shib_preuser_uninstall() {
+  variable_del('shib_user_registration');
+  variable_del('shib_preuser_settings_statusview');
+}
+
  /**
  * Implements hook_enable(). 
-  *
-  *  redirects to the configuration page.
-  */
+ *
+ *  redirects to the configuration page.
+ * 
+ **/
 
 function shib_preuser_enable() {
 
@@ -35,8 +42,9 @@ function shib_preuser_enable() {
 }
 
 function shib_preuser_disable() {
-  variable_set(SHIB_PREREG, FALSE);
-  variable_set('shib_preuser_settings_statusview', SHIB_PRESUSER_STATUSVIEW);
+  // Moving variable deletion to hook_uninstall
+  //variable_set(SHIB_PREREG, FALSE);
+  //variable_set('shib_preuser_settings_statusview', SHIB_PRESUSER_STATUSVIEW);
    drupal_set_message(check_plain(t('The Shibboleth pre-user registrations module has been disabled. ' .
     'No changes made to the authentication tables.')));
 }

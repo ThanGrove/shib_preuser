@@ -42,6 +42,8 @@ function shib_preuser_user_insert(&$edit, $account, $category) {
   if(db_table_exists('shib_authmap')) {
     if( shib_preuser_is_registered($account->uid) === FALSE ) {
       shib_preuser_add($account);
+      drupal_set_message($account->name . " has been added to Shibboleth authentication tables. Permission can be removed from the " .
+        l("user's profile edit page.", "user/" . $account->uid . "/edit"));
     }
   }
 }
