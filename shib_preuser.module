@@ -278,6 +278,7 @@ function shib_preuser_form_alter(&$form, &$form_state, $form_id) {
         '#default_value' => $isreg,
         '#title' => t('In Shibboleth authentication tables'),
         '#description' => t('Shows whether this user has been registered in the Shibboleth Authentication tables. To unregister a user click \'No\'. To register, click \'Yes\'. '),
+        '#weight' => 40,
       );
       $form['#submit'][] = 'shib_preuser_check';
     } else if (variable_get('shib_preuser_settings_statusview', SHIB_PRESUSER_STATUSVIEW)) {
