@@ -38,45 +38,10 @@ function shib_preuser_menu() {
  */
  
 function shib_preuser_user_insert(&$edit, $account, $category) {
+  
   if(db_table_exists('shib_authmap')) {
-
-    $uid = $account->uid;
-    $uname = $account->name;
-    
-    // shib_authmap table check and add if not there
-    $q = db_select('shib_authmap', 'sa')
-          ->condition('sa.uid', $uid, '=')
-          ->fields('sa', array('uid'))
-          ->execute();
-    
-    $r = $q->fetchAllAssoc('uid');
-    
-    if(count($r) == 0) {
-      $sainsert = db_insert('shib_authmap')
-                    ->fields(array(
-                      'uid' => $uid,
-                      'targeted_id' => $uname,
-                    ))->execute();
-      drupal_set_message($uname . t(' has been added to the shibboleth authentication table by the shib_preuser module'), 'status');
-    }
-    
-    // authmap table check if not there and add
-    $q = db_select('authmap', 'sa')
-          ->condition('sa.uid', $uid, '=')
-          ->fields('sa', array('uid'))
-          ->execute();
-    
-    $r = $q->fetchAllAssoc('uid');
-    
-    if(count($r) == 0) {
-      
-      $sainsert = db_insert('authmap')
-                    ->fields(array(
-                      'uid' => $uid,
-                      'authname' => $uname,
-                      'module' => 'shib_auth',
-                    ))
-                    ->execute();
+    if( shib_preuser_is_registered($account->uid) === FALSE ) {
+      shib_preuser_add($account);
     }
   }
 }
@@ -90,7 +55,9 @@ function shib_preuser_config() {
       
     $form['shib_preuser_settings_header'] = array(
       '#markup' => '<h3>Shibboleth Registration of Existings Users</h3>' .
-        '<p>' . t('Users created prior to the enabling of the Shibboleth module have already been registered in the Shibboleth authentication tables!') . '</p>',
+        '<p>' . t('Users created prior to the enabling of the Shibboleth module have already been registered in the Shibboleth authentication tables!') . '<br/>' .
+                t('When new users are added, they will automatically be entered into the Shibboleth authentication tables.') . '<br/>' .
+                t('Admins can adjust an individual user\'s registration through editing that user\'s account.') . '</p>',
     );
     
   } else {
