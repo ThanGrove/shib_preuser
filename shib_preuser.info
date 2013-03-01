@@ -4,3 +4,4 @@ package = Shibboleth
 core = 7.x
 dependencies[] = shib_auth
 files[] = shib_preuser.module
+configure = admin/config/people/shib_auth/preregistration

@@ -30,6 +30,32 @@ function shib_preuser_menu() {
 }
 
 /**
+ * Implements hook_help().
+ */
+function shib_preuser_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case 'admin/help#shib_preuser':
+      $output  = t('<p>The Shibboleth pre-user registration module allows admins to enable users registered prior to the enabling of the Shibboleth module to user Shibboleth login.');
+      $output .= t('<br/>It also allows admins to register or unregister users in the shib_auth table on an individual basis.');
+      $output .= t('<br/>To register pre-existing users, please go to the ') . l('Shibboleth Configuration Page', 'admin/config/people/shib_auth/preregistration') . '</p>';
+      break;
+  }
+  return $output;
+} 
+
+/**
+* Implements hook_permission().
+*/
+function shib_preuser_permission() {
+  return array(
+    'change shibboleth auth status' => array(
+      'title' => t('Change whether or not a user can logon via Shibboleth'),
+    ),
+  ); 
+}
+
+/**
  * shib_preuser_user_insert(): Implements hook_user_insert
  * 
  *      Adds user to shib_auth table whenever insert so that if LTI module or admin creates a user they are entered
@@ -242,7 +268,7 @@ function shib_preuser_remove($account) {
 function shib_preuser_form_alter(&$form, &$form_state, $form_id) {
   if($form_id == 'user_profile_form') {
     $isreg = (shib_preuser_is_registered($form['#user']->uid) == TRUE)? 2 : 1;
-    if(user_access('administer')) {
+    if(user_access('change shibboleth auth status')) {  
       $form['shibauth'] = array(
         '#type' => 'radios',
         '#options' => array(
