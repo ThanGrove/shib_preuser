@@ -197,14 +197,16 @@ INSERT INTO shib_authmap (uid, targeted_id)
        */
     $message = '';
     $uids = db_query('SELECT uid FROM {shib_authmap}')->fetchCol('uid');
-    $update = db_update('authmap')
-      ->fields(array(
-        'module' => 'shib_auth',
-      ))
-      ->condition('uid', $uids, 'IN')
-      ->execute();
-    $message .=  $update . ' rows in the authmap table were updated to add shib_auth as their module.';
-    drupal_set_message(check_plain($message), 'status');
+    if (count($uids) > 0 ) {
+      $update = db_update('authmap')
+        ->fields(array(
+          'module' => 'shib_auth',
+        ))
+        ->condition('uid', $uids, 'IN')
+        ->execute();
+      $message .=  $update . ' rows in the authmap table were updated to add shib_auth as their module.';
+      drupal_set_message(check_plain($message), 'status');
+    }
   } else {
     drupal_set_message(check_plain(t('authmap table does not exist! Check is Shibboleth module is installed.')), 'error');
     $reg_result = FALSE;
