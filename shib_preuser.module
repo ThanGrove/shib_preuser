@@ -50,7 +50,7 @@ function shib_preuser_help($path, $arg) {
 function shib_preuser_permission() {
   return array(
     'change shibboleth auth status' => array(
-      'title' => t('Change whether or not a user can logon via Shibboleth'),
+      'title' => t('Add or Remove Users from Shibboleth Authentication Tables'),
     ),
   ); 
 }
